@@ -1,9 +1,9 @@
 const httpStatus = require('http-status');
-const ApiError = require('../utils/ApiError');
 const userService = require('./user.service');
 const User = require('../models/user.model');
+const ApiError = require('../utils/ApiError');
 
-const loginWithEmail = async (email, password) => {
+/* const loginWithEmail = async (email, password) => {
   return new Promise(async (resolve, reject) => {
     try {
       const user = await userService.getUserByEmail(email);
@@ -18,22 +18,32 @@ const loginWithEmail = async (email, password) => {
       reject(error);
     }
   });
+}; */
+
+const register = async (userBody) => {
+  const user = await User.create(userBody);
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Somthing is wrong');
+  }
+  return user;
+};
+
+const loginWithEmail = async (email, password) => {
+  const user = await userService.getUserByEmail(email);
+  if (!user || !(await user.isPasswordMatch(password))) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Incorrect email or password');
+  }
+  return user;
 };
 
 const updateDerails = async (userId, updateBody) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const user = await User.findOneAndUpdate(userId, { updateBody, new: true });
-      if (!user) {
-        throw new ApiError(httpStatus.NOTFOUND, 'Note not found');
-      }
-      Object.assign(user, updateBody);
-      await user.save();
-      resolve(user);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  const user = await User.findOneAndUpdate(userId, { updateBody, new: true });
+  if (!user) {
+    throw new ApiError(httpStatus.NOTFOUND, 'Note not found');
+  }
+  Object.assign(user, updateBody);
+  await user.save();
+  return user;
 };
 
-module.exports = { loginWithEmail, updateDerails };
+module.exports = { register, loginWithEmail, updateDerails };

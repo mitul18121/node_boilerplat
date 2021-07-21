@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
-const ApiError = require('../utils/ApiError');
 const NoteService = require('../services/note.service');
-const createNote = async (req, res, next) => {
+const ApiError = require('../utils/ApiError');
+
+const createNote = async (req, res) => {
   try {
     const { name, detail, tags, title } = req.body;
     const params = {
@@ -13,90 +14,74 @@ const createNote = async (req, res, next) => {
     };
     const note = await NoteService.createNote(params);
     if (note && note.error) {
-      return next(new ApiError(note.error.statusCode, note.error.message));
+      throw new ApiError({ status: httpStatus.BAD_REQUEST, message: 'Something went wrong' });
     }
-    res.status(httpStatus.CREATED).send(note);
+    res.status(httpStatus.CREATED).send({ status: httpStatus.OK, message: 'Create note successfully', data: note });
   } catch (error) {
-    if (error instanceof ApiError) {
-      return next(new ApiError(error.statusCode, error.message));
+    if (error.name === 'MongoError' && error.code === 11000) {
+      return res.status(error.status || 500).send({ status: error.status, message: 'Note Name allready taken' });
     }
-    next(error);
+    res.status(error.status || 500).send({ status: error.status, message: error.message });
   }
 };
 
-const viewallNote = async (req, res, next) => {
+const viewallNote = async (req, res) => {
   try {
     const note = await NoteService.viewallNote();
     if (note && note.error) {
-      return next(new ApiError(note.error.statusCode, note.error.message));
+      throw new ApiError({ status: httpStatus.BAD_REQUEST, message: 'Unauthorized user' });
     }
-    res.status(httpStatus.CREATED).send(note);
+    res.status(httpStatus.CREATED).send({ status: httpStatus.OK, message: 'Find all notes', data: note });
   } catch (error) {
-    if (error instanceof ApiError) {
-      return next(new ApiError(error.statusCode, error.message));
-    }
-    next(error);
+    res.status(error.status || 500).send({ status: error.status, message: error.message });
   }
 };
 
-const deleteNote = async (req, res, next) => {
+const deleteNote = async (req, res) => {
   try {
     const note = await NoteService.deleteNote(req.body.noteId, req.user_id);
     if (note && note.error) {
-      return next(new ApiError(note.error.statusCode, note.error.message));
+      throw new ApiError({ status: httpStatus.NOT_FOUND, message: 'Note not found' });
     }
-    res.status(httpStatus.CREATED).send(note);
+    res.status(httpStatus.CREATED).send({ status: httpStatus.OK, message: 'Note delete successfully', data: note });
   } catch (error) {
-    if (error instanceof ApiError) {
-      return next(new ApiError(error.statusCode, error.message));
-    }
-    next(error);
+    res.status(error.status || 500).send({ status: error.status, message: error.message });
   }
 };
 
-const updateNote = async (req, res, next) => {
+const updateNote = async (req, res) => {
   try {
     const note = await NoteService.updateNoteById(req.params.noteId, req.user_id, req.body);
     if (note && note.message) {
-      return next(new ApiError(note.error.statusCode, note.error.message));
+      throw new ApiError({ status: httpStatus.NOT_FOUND, message: 'Note not found' });
     }
-    res.send(note);
+    res.send({ status: httpStatus.OK, message: 'Note updated successfully', data: note });
   } catch (error) {
-    if (error instanceof ApiError) {
-      return next(new ApiError(error.statusCode, error.message));
-    }
-    next(error);
+    res.status(error.status || 500).send({ status: error.status, message: error.message });
   }
 };
 
-const getUserNotes = async (req, res, next) => {
+const getUserNotes = async (req, res) => {
   try {
     const note = await NoteService.getNoteByUserId(req.user_id);
     if (!note) {
-      return next(new ApiError(note.error.statusCode, note.error.message));
+      throw new ApiError({ status: httpStatus.NOT_FOUND, message: 'Note not found' });
     }
-    res.status(httpStatus.OK).send(note);
+    res.status(httpStatus.OK).send({ status: httpStatus.OK, message: 'Note get successfully', data: note });
   } catch (error) {
-    if (error instanceof ApiError) {
-      console.log(`error`, error);
-      return next(new ApiError(error.statusCode, error.message));
-    }
-    next(error);
+    res.status(error.status || 500).send({ status: error.status, message: error.message });
   }
 };
 
-const viewSingleNotes = async (req, res, next) => {
+const viewSingleNotes = async (req, res) => {
   try {
     const note = await NoteService.getNoteById(req.params.noteId, req.user_id);
     if (!note) {
-      return next(new ApiError(note.error.statusCode, note.error.message));
+      throw new ApiError({ status: httpStatus.NOT_FOUND, message: 'Note not found' });
     }
-    res.status(httpStatus.OK).send(note);
+    res.status(httpStatus.OK).send({ status: httpStatus.OK, message: 'Note found successfully', data: note });
   } catch (error) {
-    if (error instanceof ApiError) {
-      console.log(`error`, error);
-      return next(new ApiError(error.statusCode, error.message));
-    }
+    res.status(error.status || 500).send({ status: error.status, message: error.message });
   }
 };
 
