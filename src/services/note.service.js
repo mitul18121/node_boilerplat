@@ -1,7 +1,6 @@
-// const httpStatus = require('http-status');
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
-const { Note } = require('../models');
+const Note = require('../models/note.models');
 const ApiError = require('../utils/ApiError');
 
 // Create a notes
@@ -34,12 +33,12 @@ const viewallNote = async (noteBody) => {
 };
 
 // Get note by id
-const getNoteById = async (id) => {
+const getNoteById = async (id, user_id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const note = await Note.findById(mongoose.Types.ObjectId(id));
+      const note = await Note.findOne({ _id: id, user_id: user_id });
       if (!note) {
-        throw new ApiError(httpStatus.NOTFOUND, 'Note not found');
+        throw new ApiError(httpStatus.NOT_FOUND, 'Note not found');
       }
       resolve(note);
     } catch (error) {
@@ -49,12 +48,12 @@ const getNoteById = async (id) => {
 };
 
 // Delete a Notes
-const deleteNote = async (noteId) => {
+const deleteNote = async (noteId, user_id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const note = await Note.findOneAndDelete({ _id: mongoose.Types.ObjectId(noteId) });
+      const note = await Note.findOneAndDelete({ _id: noteId, user_id: user_id });
       if (!note) {
-        throw new ApiError(httpStatus.NOTFOUND, 'Note not found');
+        throw new ApiError(httpStatus.NOT_FOUND, 'Note not found');
       }
       resolve(note);
     } catch (error) {
@@ -63,12 +62,12 @@ const deleteNote = async (noteId) => {
   });
 };
 
-const updateNoteById = async (noteId, updateBody) => {
+const updateNoteById = async (noteId, user_id, updateBody) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const note = await Note.findOneAndUpdate({ noteId, updateBody, new: true });
+      const note = await Note.findOneAndUpdate({ noteId, user_id, updateBody, new: true });
       if (!note) {
-        throw new ApiError(httpStatus.NOTFOUND, 'Note not found');
+        throw new ApiError(httpStatus.NOT_FOUND, 'Note not found');
       }
       Object.assign(note, updateBody);
       await note.save();
@@ -79,11 +78,25 @@ const updateNoteById = async (noteId, updateBody) => {
   });
 };
 
-// Export queary
+const getNoteByUserId = async (user_id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const note = await Note.find({ user_id });
+      if (!note) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Note not found');
+      }
+      resolve(note);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 module.exports = {
   createNote,
   deleteNote,
   getNoteById,
   viewallNote,
   updateNoteById,
+  getNoteByUserId,
 };

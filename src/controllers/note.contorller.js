@@ -1,10 +1,17 @@
 const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
 const NoteService = require('../services/note.service');
-
 const createNote = async (req, res, next) => {
   try {
-    const note = await NoteService.createNote(req.body);
+    const { name, detail, tags, title } = req.body;
+    const params = {
+      name,
+      detail,
+      tags,
+      title,
+      user_id: req.user_id,
+    };
+    const note = await NoteService.createNote(params);
     if (note && note.error) {
       return next(new ApiError(note.error.statusCode, note.error.message));
     }
@@ -19,7 +26,7 @@ const createNote = async (req, res, next) => {
 
 const viewallNote = async (req, res, next) => {
   try {
-    const note = await NoteService.viewallNote({});
+    const note = await NoteService.viewallNote();
     if (note && note.error) {
       return next(new ApiError(note.error.statusCode, note.error.message));
     }
@@ -34,7 +41,7 @@ const viewallNote = async (req, res, next) => {
 
 const deleteNote = async (req, res, next) => {
   try {
-    const note = await NoteService.deleteNote(req.body.noteId);
+    const note = await NoteService.deleteNote(req.body.noteId, req.user_id);
     if (note && note.error) {
       return next(new ApiError(note.error.statusCode, note.error.message));
     }
@@ -49,7 +56,7 @@ const deleteNote = async (req, res, next) => {
 
 const updateNote = async (req, res, next) => {
   try {
-    const note = await NoteService.updateNoteById(req.params.noteId, req.body);
+    const note = await NoteService.updateNoteById(req.params.noteId, req.user_id, req.body);
     if (note && note.message) {
       return next(new ApiError(note.error.statusCode, note.error.message));
     }
@@ -61,4 +68,36 @@ const updateNote = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { createNote, deleteNote, viewallNote, updateNote };
+
+const getUserNotes = async (req, res, next) => {
+  try {
+    const note = await NoteService.getNoteByUserId(req.user_id);
+    if (!note) {
+      return next(new ApiError(note.error.statusCode, note.error.message));
+    }
+    res.status(httpStatus.OK).send(note);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      console.log(`error`, error);
+      return next(new ApiError(error.statusCode, error.message));
+    }
+    next(error);
+  }
+};
+
+const viewSingleNotes = async (req, res, next) => {
+  try {
+    const note = await NoteService.getNoteById(req.params.noteId, req.user_id);
+    if (!note) {
+      return next(new ApiError(note.error.statusCode, note.error.message));
+    }
+    res.status(httpStatus.OK).send(note);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      console.log(`error`, error);
+      return next(new ApiError(error.statusCode, error.message));
+    }
+  }
+};
+
+module.exports = { createNote, deleteNote, viewallNote, updateNote, getUserNotes, viewSingleNotes };

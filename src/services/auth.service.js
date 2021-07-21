@@ -1,23 +1,39 @@
 const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
-const { User } = require('../models');
+const userService = require('./user.service');
+const User = require('../models/user.model');
 
-const createUser = async (userBody) => {
+const loginWithEmail = async (email, password) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const user = await User.create(userBody);
+      const user = await userService.getUserByEmail(email);
+      if (!user || !(await user.isPasswordMatch(password))) {
+        throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
+      }
       resolve(user);
     } catch (error) {
-      if (error.name === 'MongoError' && error.code === 11000) {
-        if (error.keyValue.email) {
-          reject(new ApiError(httpStatus.BAD_REQUEST, 'Email is already registered'));
-        } else if (error.keyValue.phone) {
-          reject(new ApiError(httpStatus.BAD_REQUEST, 'Phone is already registered'));
-        }
+      if (error.name === 'MongoError') {
+        reject(new ApiError(httpStatus.BAD_REQUEST, 'Email must be unique'));
       }
-      return reject(error);
+      reject(error);
     }
   });
 };
 
-module.exports = { createUser };
+const updateDerails = async (userId, updateBody) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const user = await User.findOneAndUpdate(userId, { updateBody, new: true });
+      if (!user) {
+        throw new ApiError(httpStatus.NOTFOUND, 'Note not found');
+      }
+      Object.assign(user, updateBody);
+      await user.save();
+      resolve(user);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+module.exports = { loginWithEmail, updateDerails };

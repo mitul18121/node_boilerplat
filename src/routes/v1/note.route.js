@@ -1,13 +1,16 @@
 const express = require('express');
 const noteController = require('../../controllers/note.contorller');
 const validate = require('../../middlewares/validate');
+const { authondication } = require('../../middlewares/auth.middleware');
 const { createNote, deleteNote, updateNote } = require('../../validations/note.validation');
 
 const router = express.Router();
 
-router.route('/add').post(validate(createNote), noteController.createNote);
-router.route('/delete').delete(validate(deleteNote), noteController.deleteNote);
-router.route('/viewAllNotes').get(noteController.viewallNote);
-router.route(`/updateNote/:noteId`).put(validate(updateNote), noteController.updateNote);
+router.post('/add', authondication, validate(createNote), noteController.createNote);
+router.delete('/delete', authondication, validate(deleteNote), noteController.deleteNote);
+router.get('/viewAllNotes', authondication, noteController.viewallNote);
+router.put(`/updateNote/:noteId`, authondication, validate(updateNote), noteController.updateNote);
+router.get('/getnotesbyuserid', authondication, noteController.getUserNotes);
+router.get('/viewsinglenote/:noteId', authondication, noteController.viewSingleNotes);
 
 module.exports = router;
