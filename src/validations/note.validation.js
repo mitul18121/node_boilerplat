@@ -64,4 +64,10 @@ const updateNote = {
   }),
 };
 
-module.exports = { createNote, deleteNote, updateNote };
+const viewSingleNote = {
+  params: Joi.object().keys({
+    noteId: Joi.required(),
+  }),
+};
+
+module.exports = { createNote, deleteNote, updateNote, viewSingleNote };
