@@ -6,11 +6,12 @@ require('dotenv').config();
 
 const authondication = async (req, res, next) => {
   try {
-    const token = req.headers['x-access-token'];
-    if (!token) {
+    const token = req.headers['authorization'];
+    const authHeader = token && token.split(' ')[1];
+    if (!authHeader) {
       next(new ApiError(httpStatus.BAD_REQUEST, 'Unauthorized user'));
     }
-    const decodeToken = jwt.verify(token, process.env.JWT_SECRET);
+    const decodeToken = jwt.verify(authHeader, process.env.JWT_SECRET);
     const verify = await User.findOne({
       email: decodeToken.payload.email,
     });
@@ -21,11 +22,10 @@ const authondication = async (req, res, next) => {
     if (!verify || !verify.token) {
       next(new ApiError(httpStatus.BAD_REQUEST, 'Unauthorized user'));
     } else {
-      if (verify.token !== token) {
+      if (verify.token !== authHeader) {
         next(new ApiError(httpStatus.BAD_REQUEST, 'Unauthorized user'));
-      } else {
-        next();
       }
+      next();
     }
   } catch (error) {
     next(error);

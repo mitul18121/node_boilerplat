@@ -14,7 +14,7 @@ const noteSchema = mongoose.Schema(
         type: String,
       },
     ],
-    user_id: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'userSchema' },
+    user_id: [{ type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' }],
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-// const { toJSON } = require('./plugins');
+const { toJSON } = require('./plugins');
 
 const userSchema = mongoose.Schema({
   name: {
@@ -13,6 +13,10 @@ const userSchema = mongoose.Schema({
     unique: true,
   },
   password: {
+    type: String,
+    required: true,
+  },
+  profile_url: {
     type: String,
     required: true,
   },
@@ -39,7 +43,7 @@ const userSchema = mongoose.Schema({
   },
 });
 
-// userSchema.plugin(toJSON);
+userSchema.plugin(toJSON);
 
 userSchema.pre('save', async function (next) {
   const user = this;

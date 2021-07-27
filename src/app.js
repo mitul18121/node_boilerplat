@@ -11,6 +11,7 @@ const { authLimiter } = require('./middlewares/rateLimiter');
 const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
+// const path = require('path');
 
 const app = express();
 
@@ -24,6 +25,8 @@ app.use(helmet());
 
 // parse json request body
 app.use(express.json());
+
+app.use('/', express.static(__dirname + '/uploads'));
 
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));

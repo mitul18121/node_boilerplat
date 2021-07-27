@@ -2,9 +2,19 @@ const httpStatus = require('http-status');
 const AuthService = require('../services/auth.service');
 const ApiError = require('../utils/ApiError');
 const token = require('../utils/jwtToken');
+
 const register = async (req, res) => {
   try {
-    const user = await AuthService.register(req.body);
+    const profile_url = req.file.path;
+    const { name, email, password, phone } = req.body;
+    const params = {
+      profile_url,
+      name,
+      email,
+      password,
+      phone,
+    };
+    const user = await AuthService.register(params);
     if (user && user.error) {
       throw new ApiError({ status: httpStatus.BAD_REQUEST, message: 'Something went wrong' });
     }

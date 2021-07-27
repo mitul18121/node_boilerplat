@@ -12,15 +12,42 @@ const createNote = async (noteBody) => {
   return note;
 };
 
-const viewallNote = async (noteBody) => {
-  const note = await Note.find(noteBody);
+const viewallNote = async (sortQuery) => {
+  const { fieldname, sorting, page, limit } = sortQuery;
+  let { search } = sortQuery;
+  let whereClause = {};
+  if (search) {
+    search = new RegExp(search, 'ig');
+    whereClause = {
+      $or: [{ name: search }],
+    };
+  }
+  const note = await Note.find(whereClause)
+    .sort({ [fieldname]: parseInt(sorting) })
+    .skip(page > 0 ? +limit * (+page - 1) : 0)
+    .limit(+limit || 20);
   if (!note) {
     throw new ApiError(httpStatus.NOT_FOUND, 'No notes found');
   }
   return note;
 };
 
-// Get note by id
+const aggrigateTestApi = async () => {
+  const note = await Note.aggregate([
+    {
+      $group: {
+        _id: '$tags',
+        notesCount: { $sum: 1 },
+      },
+    },
+  ]);
+  if (!note) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'No notes found');
+  }
+  return note;
+};
+
+// Get note by id`
 const getNoteById = async (id, user_id) => {
   const note = await Note.findOne({ _id: id, user_id: user_id });
   if (!note) {
@@ -50,6 +77,7 @@ const updateNoteById = async (noteId, user_id, updateBody) => {
 
 const getNoteByUserId = async (user_id) => {
   const note = await Note.find({ user_id });
+
   if (!note) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Note not found');
   }
@@ -63,4 +91,7 @@ module.exports = {
   viewallNote,
   updateNoteById,
   getNoteByUserId,
+  aggrigateTestApi,
 };
+
+// .populate('user_id', { name: 1, phone: 1, email: 1, profile_url: 1 })

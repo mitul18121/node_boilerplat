@@ -27,7 +27,7 @@ const createNote = async (req, res) => {
 
 const viewallNote = async (req, res) => {
   try {
-    const note = await NoteService.viewallNote();
+    const note = await NoteService.aggrigateTestApi(req.query);
     if (note && note.error) {
       throw new ApiError({ status: httpStatus.BAD_REQUEST, message: 'Unauthorized user' });
     }
