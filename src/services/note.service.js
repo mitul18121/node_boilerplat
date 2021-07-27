@@ -48,8 +48,9 @@ const aggrigateTestApi = async () => {
 };
 
 // Get note by id`
-const getNoteById = async (id, user_id) => {
-  const note = await Note.findOne({ _id: id, user_id: user_id });
+const getNoteById = async (id, userId) => {
+  const note = await Note.findOne({ _id: id, user_id: userId });
+
   if (!note) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Note not found');
   }
@@ -57,16 +58,16 @@ const getNoteById = async (id, user_id) => {
 };
 
 // Delete a Notes
-const deleteNote = async (noteId, user_id) => {
-  const note = await Note.findOneAndDelete({ _id: noteId, user_id: user_id });
+const deleteNote = async (noteId, userId) => {
+  const note = await Note.findOneAndDelete({ _id: noteId, user_id: userId });
   if (!note) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Note not found');
   }
   return note;
 };
 
-const updateNoteById = async (noteId, user_id, updateBody) => {
-  const note = await Note.findOneAndUpdate({ noteId, user_id, updateBody, new: true });
+const updateNoteById = async (noteId, userId, updateBody) => {
+  const note = await Note.findOneAndUpdate({ noteId, userId, updateBody, new: true });
   if (!note) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Note not found');
   }
@@ -75,8 +76,8 @@ const updateNoteById = async (noteId, user_id, updateBody) => {
   return note;
 };
 
-const getNoteByUserId = async (user_id) => {
-  const note = await Note.find({ user_id });
+const getNoteByUserId = async (userId) => {
+  const note = await Note.find({ user_id: userId });
 
   if (!note) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Note not found');
