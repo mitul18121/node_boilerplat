@@ -93,3 +93,5 @@ module.exports = {
   getNoteByUserId,
   aggrigateTestApi,
 };
+
+// .populate('user_id', { name: 1, phone: 1, email: 1, profile_url: 1 })
